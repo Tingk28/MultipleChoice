@@ -14,7 +14,8 @@ def new_window(LOs, fontsize, size):
               [sg.OptionMenu(LOs, key="-LOS-", size=(10, 2)), sg.Button("Change LO"), sg.CBox("跳過是非", key="-SKIPTF-"),
                sg.CBox("順序隨機", key="-SHUFFLE-"), sg.Push(), sg.Text('進度:--/--', key="-PROGRESS-"),
                sg.Text("correct:0/wrong:0  score:0.00", key="-SCORE-")],
-              [sg.Multiline("請選擇LO再開始作答\n選擇題：1 2 3 4 為ABCD\n是非題：1為False  2為True\n按下enter可以跳到下一題", key="-QUESTIONS-",
+              [sg.Multiline("請選擇LO再開始作答\n選擇題：1 2 3 4 為ABCD\n是非題：1為False  2為True\n按下enter可以跳到下一題\n\
+              有關使用說明與操作方式，請到下列網址了解更多\nhttps://github.com/Tingk28/MutipleChoise", key="-QUESTIONS-",
                             auto_size_text=True, font=('Arial', fontsize)
                             , expand_x=True, expand_y=True, border_width=2, disabled=True,
                             right_click_menu=['&Right', ['翻譯']])],
@@ -78,7 +79,7 @@ except Exception as e:
 
 while True:
     event, values = window.read(timeout=timeout)
-    print(event)
+    # print(event)
     if event in ['MouseWheel:Up', 'MouseWheel:Down', 'Up:38', 'Down:40']:
         continue
 
@@ -112,40 +113,44 @@ while True:
 
     if event in file_list:  # 更換檔案
         file = event
-        if event != 'load from...':
-            with open(os.path.join("multi json", file), 'r', encoding='UTF-8')as f:
-                Questions = json.load(f)
-        else:
-            file = sg.popup_get_file('load question', no_window=True, file_types=(("Text Files", "*.json"),))
-            if file == '':  # 沒有選擇檔案
-                sg.popup("請選擇檔案！")
-                continue
-            with open(file, 'r', encoding='UTF-8')as f:
-                Questions = json.load(f)
-        LOs = []
-        for key in Questions.keys():
-            LOs.append(key)
-        LOs.append("所有章節")
+        try:
+            if event != 'load from...':
+                with open(os.path.join("multi json", file), 'r', encoding='UTF-8')as f:
+                    Questions = json.load(f)
+            else:
+                file = sg.popup_get_file('load question', no_window=True, file_types=(("Text Files", "*.json"),))
+                if file == '':  # 沒有選擇檔案
+                    sg.popup("請選擇檔案！")
+                    continue
+                with open(file, 'r', encoding='UTF-8')as f:
+                    Questions = json.load(f)
+            LOs = []
+            for key in Questions.keys():
+                LOs.append(key)
+            LOs.append("所有章節")
 
-        # reset all parameter
-        all = []
-        question_number = len(all)  # 總題目數
-        current = 0  # 當前題號
-        correct = 0  # 答對次數
-        wrong = 0  # 答錯次數
-        # restart the system
-        size = window.size
-        window.close()
-        window = new_window(LOs, fontsize, size)
-        window.read(timeout=1)
-        file = file.split('/')[-1]
-        window["-FILE-"].update(file)
-        buttonlist = [window["-A-"], window["-B-"], window["-C-"], window["-D-"]]
-        # window['-LOS-'].update(values=LOs)
-        # window["-QUESTIONS-"].update(value="請選擇LO再開始作答")
+            # reset all parameter
+            all = []
+            question_number = len(all)  # 總題目數
+            current = 0  # 當前題號
+            correct = 0  # 答對次數
+            wrong = 0  # 答錯次數
+            # restart the system
+            size = window.size
+            window.close()
+            window = new_window(LOs, fontsize, size)
+            window.read(timeout=1)
+            file = file.split('/')[-1]
+            window["-FILE-"].update(file)
+            buttonlist = [window["-A-"], window["-B-"], window["-C-"], window["-D-"]]
+            # window['-LOS-'].update(values=LOs)
+            # window["-QUESTIONS-"].update(value="請選擇LO再開始作答")
 
-        continue
-
+            continue
+        except Exception as e:
+            window["-QUESTIONS-"].update(value="匯入的檔案格式錯誤\n請重新選擇")
+            sg.popup("匯入的檔案格式錯誤\n請重新選擇")
+            
     if event == "Change LO":  # 選擇LO
         if values['-LOS-'] == '' or file == '':
             continue
@@ -181,7 +186,7 @@ while True:
             window["-QUESTIONS-"].update("檔案為空或該章節沒有題目")
 
     if event == 'Info':
-        sg.popup("有關使用說明與操作方式，請到下列網址了解更多\nhttps://github.com/Tingk28/MutipleChoise")
+        sg.popup("本專案僅提供軟體本身，並未提供題目內容。請使用者自行創建、匯入", title="關於")
 
     if len(all) == 0:#還沒讀到任何題目
         window["-QUESTIONS-"].update(text_color="#FF0000")
