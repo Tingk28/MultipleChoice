@@ -34,7 +34,7 @@
 下載後會得到一個壓縮檔，解壓縮後裡面還有個`exe.zip` ，將`exe.zip`再次解壓縮後裡面有`dist`與`build`資料夾（如下圖）<br>
 ![解壓縮](imgs/解壓縮.png)
 
-**打開`dist`資料夾，後續所有操作均在此資料夾進行**
+**打開`dist`資料夾，後續所有操作均在此資料夾進行**<br>
 ![解壓縮說明圖片](imgs/解壓縮說明.png)
 
 ### 自定義題目資料夾
@@ -105,7 +105,7 @@ pip install PySimpleGUI
 ### json題目格式
 所有題目採用.json儲存，題目檔的格式如下：
 1. 最外面為一個dictionary，以章節名稱為key，題目組成的list為其value
-2. 題目數個dictionary組成，包含`question"` `"choice"` `"ans"` 三個key
+2. 題目數個dictionary組成，包含`"question"` `"choice"` `"ans"` 三個key
 3. 因為python Zero-base的特性，選擇題ans的值為`0-3`對應答案`A-D`
 4. 承上，是非題無`"choice"` 的key，答案為`"T"` 或`"F"` 
 5. **選項與題目都須以`\n`做結尾，以達到換行的效果**
