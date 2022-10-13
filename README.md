@@ -18,7 +18,7 @@
 
 ## 給一般使用者
 ### 下載與安裝
-進入github連結後會看到如下畫面，請點擊紅框處綠色的Code按鈕並選擇Download Zip進行下載。
+進入github連結後會看到如下畫面，請點擊紅框處綠色的Code按鈕並選擇Download Zip進行下載。<br>
 ![git_home](imgs/git_home.png)
 
 下載後會得到一個壓縮檔，解壓縮後裡面還有個`exe.zip` ，將`exe.zip`再次解壓縮後裡面有`dist`與`build`資料夾（如下圖）
@@ -49,7 +49,7 @@ dist 資料夾中有一`multi json`的資料夾，放在此處的json檔將會�
 
 接著選取**chromedriver_win32.zip**，注意不論是32或64位元的版本均下載此檔案即可
 - webdriver安裝
-打開剛剛下載的`chromedriver_win32.zip`如下圖所示，直接將`webdriver.exe`拖入`dist`資料夾中並直接取代原本的檔案即可
+打開剛剛下載的`chromedriver_win32.zip`如下圖所示，直接將`webdriver.exe`拖入`dist`資料夾中並直接取代原本的檔案即可<br>
 
 ![webdriver download](imgs/webdriver_download.png)
 
@@ -64,7 +64,7 @@ dist 資料夾中有一`multi json`的資料夾，放在此處的json檔將會�
 - about：程式基本訊息，可找到本專案的github說明網址
 ### 使用方法
 使用exe檔執行可能會遇到windows defender 回報軟體可能不安全，需要選擇「信任此程式」或暫時關閉windows defender，若遇到此問題可以[直接執行python檔](#給開發者或不透過exe檔執行者)
-1. 一開始請先透過file>open選單打開題目檔，可以透過`load from`手動匯入路徑．或用打開已經存放在`multi json`資料夾中的檔案。
+1. 一開始請先透過file>open選單打開題目檔，可以透過`load from`手動匯入路徑．或用打開已經存放在`multi json`資料夾中的檔案。<>
 ![選擇檔案](imgs/choose_file.PNG)
 3. 透過下圖的下拉式選單選擇要練習的章節，或選擇「所有章節」一次性匯入該檔案中所有題目，此時可以勾選右邊「跳過是非」、「順序隨機」來略過是非題或打散題目順序。<br>
 ![匯入檔案](imgs/load_question.PNG)
@@ -166,3 +166,4 @@ pyinstaller -F main.py -w --icon=icon.ico
 未來預計會新增的功能有：
 1. 能建立題目的gui
 2. 合併多個題目檔的功能
+3. macOS系統支援
