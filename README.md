@@ -56,6 +56,7 @@ dist 資料夾中有一`multi json`的資料夾，放在此處的json檔將會�
 接著到Chrome driver官方[下載頁面](https://chromedriver.chromium.org/downloads) https://chromedriver.chromium.org/downloads 
 
 接續前面範例，選擇106的版本
+**注意：請依照自身瀏覽器版本選擇下載的檔案、而非下載最新版**
 ![webdriver ver download](imgs/webdriver_ver_download.png)
 
 接著選取**chromedriver_win32.zip**，注意不論是32或64位元的版本均下載此檔案即可
