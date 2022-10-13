@@ -170,7 +170,7 @@ pip install pyinstaller
 ```=
 pyinstaller -F main.py -w --icon=icon.ico
 ```
-3. 第一次使用可能會發現webdriver的console被打開了，請參照[這篇文章](https://stackoverflow.com/questions/40661739/pyinstaller-windowed-or-noconsole-exe-not-allowing-chromedriver-to-open/56839122#56839122)來獲得解決。
+3. 第一次使用可能會發現webdriver的console被打開了，請參照[這篇文章](https://stackoverflow.com/questions/52643556/getting-rid-of-chromedirver-console-window-with-pyinstaller)來獲得解決。
 
 4. 執行2.後會產生`dist`與`build`資料夾，執行dist中的.exe即可。
 
