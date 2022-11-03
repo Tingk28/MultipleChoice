@@ -5,17 +5,23 @@ import os
 from selenium import webdriver
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
-import time
+import merge
 
 
-def new_window(LOs, fontsize, size):
-    layout = [[sg.Menu(menu_layout)],
+def get_center_position(window):
+    screen_width, screen_height = window.get_screen_dimensions()
+    win_width, win_height = window.size
+    return (screen_width - win_width) // 2, (screen_height - win_height) // 2  # x, y
+
+
+def new_window(LOs, fontsize, size, location=(None, None)):
+    layout = [[sg.Menu(menu_layout, key="-MENU-")],
               [sg.Text("請選擇檔案", key="-FILE-", grab=True)],
               [sg.OptionMenu(LOs, key="-LOS-", size=(10, 2)), sg.Button("Change LO"), sg.CBox("跳過是非", key="-SKIPTF-"),
                sg.CBox("順序隨機", key="-SHUFFLE-"), sg.Push(), sg.Text('進度:--/--', key="-PROGRESS-"),
                sg.Text("correct:0/wrong:0  score:0.00", key="-SCORE-")],
               [sg.Multiline("請選擇LO再開始作答\n選擇題：1 2 3 4 為ABCD\n是非題：1為False  2為True\n按下enter可以跳到下一題\n\
-              有關使用說明與操作方式，請到下列網址了解更多\nhttps://github.com/Tingk28/MutipleChoise", key="-QUESTIONS-",
+              有關使用說明與操作方式，請到下列網址了解更多\nhttps://github.com/Tingk28/MultipleChoice", key="-QUESTIONS-",
                             auto_size_text=True, font=('Arial', fontsize)
                             , expand_x=True, expand_y=True, border_width=2, disabled=True,
                             right_click_menu=['&Right', ['翻譯']])],
@@ -29,7 +35,26 @@ def new_window(LOs, fontsize, size):
               [sg.Sizegrip()]
               ]
 
-    return sg.Window('選擇題刷題', layout, icon='icon.ico', return_keyboard_events=True, size=size, resizable=True)
+    window = sg.Window('選擇題刷題', layout, icon='icon.ico', return_keyboard_events=True, size=size, resizable=True,
+                       finalize=True, location=location)
+    if location == (None, None):
+        location = get_center_position(window)
+        window.move(location[0], location[1])
+    return window
+
+
+def new_translate(window):
+    try:
+        options = webdriver.ChromeOptions()
+        options.add_argument("--window-size=%s" % "720,780")
+        driver = webdriver.Chrome(r'chromedriver.exe', options=options)
+        driver.get(r'https://translate.google.com.tw/?hl=zh-TW')  # 連線至google翻譯
+        return [True, driver]
+
+    except Exception as e:
+        window['-QUESTIONS-'].update(
+            "Web Driver已過期或不存在，請至 https://chromedriver.chromium.org/downloads 下載對應版本\n或選擇檔案直接開始")
+        return [False, None]
 
 
 def translate(string, driver):
@@ -41,7 +66,7 @@ file_list = ['load from...']
 file_list.extend(os.listdir("multi json"))
 
 menu_layout = [
-    ['File', [['Open', file_list], '---', 'Save as']],
+    ['File', [['Open', file_list], '---', 'Save as', 'Merge']],
     ['Text Size', ['9', '10', '12', '14', '16', '18', '20', '24', '28']],
     ['Timeout', ['500', '1000', '1500', '2000']],
     ['About', ['Info']]
@@ -49,10 +74,10 @@ menu_layout = [
 
 file = ''
 LOs = []
-# for key in Questions.keys():
-#    LOs.append(key)
 
 LOs.append("所有章節")
+
+open_translate = sg.popup_yes_no("是否開啟翻譯功能？")
 
 fontsize = 16
 size = (600, 570)
@@ -63,19 +88,22 @@ choice_list = ["A", "B", "C", "D"]
 trans = ''
 timeout = 1000
 
-try:
-    options = webdriver.ChromeOptions()
-    # options.add_argument("--headless") #不顯示視窗
-    options.add_argument("--window-size=%s" % "720,780")
-    driver = webdriver.Chrome(r'chromedriver.exe', options=options)
-    driver.get(r'https://translate.google.com.tw/?hl=zh-TW')  # 連線至google翻譯
-    driver_exist = True
+if open_translate == 'Yes':
+    driver_result = new_translate(window)
+    driver_exist = driver_result[0]
+    driver = driver_result[1] if driver_exist else None
 
-except Exception as e:
-    event, values = window.read(timeout=1)
-    window['-QUESTIONS-'].update("Web Driver已過期或不存在，請至 https://chromedriver.chromium.org/downloads 下載對應版本")
-    driver_exist=False
+    if driver_exist is False:  # 如果開啟瀏覽器失敗
+        open_translate = 'No'
 
+if open_translate == "No" or open_translate is None:
+    menu_layout = [
+        ['File', [['Open', file_list], '---', 'Save as', 'Merge']],
+        ['Text Size', ['9', '10', '12', '14', '16', '18', '20', '24', '28']],
+        ['About', ['Info']]]
+    window["-MENU-"].update(menu_layout)
+    driver_exist = False
+    timeout = 100000
 
 while True:
     event, values = window.read(timeout=timeout)
@@ -86,15 +114,22 @@ while True:
     if driver_exist:
         try:
             if event == '翻譯':
-                translate(window['-QUESTIONS-'].get(),driver)
-            else :
+                translate(window['-QUESTIONS-'].get(), driver)
+            else:
                 temp_trans = window['-QUESTIONS-'].widget.selection_get()
                 if trans != temp_trans or event != '__TIMEOUT__':
                     trans = temp_trans
                     translate(trans, driver)
 
         except WebDriverException as error:
+            sg.popup("網頁出現問題，將關閉翻譯功能", title="")
+            menu_layout = [
+                ['File', [['Open', file_list], '---', 'Save as', 'Merge']],
+                ['Text Size', ['9', '10', '12', '14', '16', '18', '20', '24', '28']],
+                ['About', ['Info']]]
+            window["-MENU-"].update(menu_layout)
             driver_exist = False
+            timeout = 100000
 
         except Exception as e:
             trans = ''
@@ -137,20 +172,19 @@ while True:
             wrong = 0  # 答錯次數
             # restart the system
             size = window.size
+            location = window.CurrentLocation()
             window.close()
-            window = new_window(LOs, fontsize, size)
-            window.read(timeout=1)
+            window = new_window(LOs, fontsize, size, location=location)
             file = file.split('/')[-1]
             window["-FILE-"].update(file)
             buttonlist = [window["-A-"], window["-B-"], window["-C-"], window["-D-"]]
-            # window['-LOS-'].update(values=LOs)
-            # window["-QUESTIONS-"].update(value="請選擇LO再開始作答")
 
             continue
+
         except Exception as e:
             window["-QUESTIONS-"].update(value="匯入的檔案格式錯誤\n請重新選擇")
             sg.popup("匯入的檔案格式錯誤\n請重新選擇")
-            
+
     if event == "Change LO":  # 選擇LO
         if values['-LOS-'] == '' or file == '':
             continue
@@ -174,7 +208,7 @@ while True:
                 del_list.append(i)
         for i in del_list:
             all.remove(i)
-        ##題目隨機順序
+        # 題目隨機順序
         if values['-SHUFFLE-']:
             random.shuffle(all)
         question_number = len(all)  # 總題目數
@@ -188,7 +222,15 @@ while True:
     if event == 'Info':
         sg.popup("本專案僅提供軟體本身，並未提供題目內容。請使用者自行創建、匯入", title="關於")
 
-    if len(all) == 0:#還沒讀到任何題目
+    if event == 'Merge':  # 合併檔案
+        window.disappear()
+        window['-MENU-'].update(visible=False)  # mac版需要隱藏左上選單列
+        merge.merge_file()
+        window['-MENU-'].update(visible=True)
+        window.reappear()
+        continue
+
+    if len(all) == 0:  # 還沒讀到任何題目
         window["-QUESTIONS-"].update(text_color="#FF0000")
         continue
 
@@ -201,12 +243,12 @@ while True:
 
     if event == "Left:37":  # user 按下左邊方向鍵（上一題）
         window["-PREVIOUS-"].click()
-    
+
     if event in ["-A-", "-B-", "-C-", "-D-"]:  # 選擇選項
         student_ans = event[1]
         student_ans = choice_list.index(student_ans)
         all[current]['student_ans'] = student_ans
-        if (all[current]['ans'] == student_ans):
+        if student_ans == all[current]['ans']:
             correct += 1
         else:
             wrong += 1
@@ -246,10 +288,10 @@ while True:
                 json.dump(output, f)
             sg.popup("檔案儲存成功！\n" + file)
 
-    ##顯示區域
+    # 顯示區域
     question_str = all[current]['question'] + "\n"
 
-    ##選擇題
+    # 選擇題
     if 'choice' in all[current].keys():  # 選擇題
         window["-A-"].update(text="A")
         window["-B-"].update(text="B")
@@ -271,11 +313,11 @@ while True:
         window["-A-"].update(text="F")
         window["-B-"].update(text="T")
 
-    if all[current]['student_ans'] == -1:  ##還沒作答過
+    if all[current]['student_ans'] == -1:  # 還沒作答過
         for i in buttonlist:
             i.update(disabled=False, button_color=('white', "#283b5b"))
 
-        if 'choice' not in all[current].keys():  ##若為是非題，禁用CD選項
+        if 'choice' not in all[current].keys():  # 若為是非題，禁用CD選項
             window["-C-"].update(disabled=True)
             window["-D-"].update(disabled=True)
     else:  # 達過的題目
@@ -295,7 +337,10 @@ while True:
     if event in ["-A-", "-B-", "-C-", "-D-"] and wrong + correct == question_number:
         sg.Popup(f"已經完成作答\n得分：{score}")
 
-try:
-    driver.close()
-except Exception as e:
-    pass
+window.close()
+if driver_exist:
+    try:
+        driver.quit()
+    except:
+        pass
+
